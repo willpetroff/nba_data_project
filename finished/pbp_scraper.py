@@ -1,7 +1,7 @@
 """
-Python 3.4.3
-
 This script grabs play-by-play data for all regular season games from 1996-97 season to present from NBA.com
+
+Python 3.4.3
 
 Created: 5/18/15
 Edited: 10/21/15
@@ -18,15 +18,24 @@ from shutil import move
 from random import randint
 
 
-def name_pop(year):  # Populates seasons and games id lists up to a given year
-    season_count = 1976  # The 1976-77 season is the first NBA season after the NBA-ABA merger.
+def name_pop(year):
+    """
+    Generates all needed season and game id strings needed for url query.
+    :param year: The current year (int).
+    :return season_list: A list of season_id strings
+    :return game_list: A list of game_id strings
+    """
+    games_list = []
+    seasons_list = []
+    season_count = 1976-77  # The 1976-77 season is the first NBA season after the NBA-ABA merger.
     # The game id value is "002xx(last two numbers from first year of season)xxxxx(the game number plus needed "0"s)
     for number in range(1, 1231):  # With the current number of 15 teams, 1230 is the max number of games in a season
         game_string = '00000'[:-len(str(number))]+str(number)
-        games.append(game_string)
+        games_list.append(game_string)
     while season_count < year:
-        seasons.append(str(season_count)[2:4])
+        seasons_list.append(str(season_count)[2:4])
         season_count += 1
+    return seasons_list, games_list
 
 
 def pbp_scraper(season, game):  # Grabs pbp data from NBA.com given season id and game id values
@@ -71,6 +80,12 @@ def box_score_scraper(season, game):  # Grabs corresponding box-score data from 
             
 
 def file_mover(season, game):  # Moves newly scraped files to final folder dir
+    """
+    Moves play-by-play file from local folder to play-by-play folder
+    :param season: season_id string
+    :param game: game_id string
+    :return:
+    """
     file_start = season+'_'+game
     boxscore_file_dir = 'C:\\Users\\William\\Documents\\Python Projects\\nba\\pbp scraper\\box score\\'
     pbp_file_dir = 'C:\\Users\\William\\Documents\\Python Projects\\nba\\pbp scraper\\pbp\\'
@@ -84,7 +99,11 @@ def file_mover(season, game):  # Moves newly scraped files to final folder dir
     move(file_name, pbp_file_dir+file_name)  # Moves cleaned and formatted play_by_play file
 
 
-def pbp_cleaner(file):  # Makes initial run to clean and format play-by-play data
+def pbp_cleaner(file):
+    """
+    Makes initial run to clean and format play-by-play data
+    :param file: A path string
+    """
     temp_cab = []
     with open(file, 'r') as csv_file:
         reader = csv.reader(csv_file)
@@ -122,11 +141,10 @@ def pbp_cleaner(file):  # Makes initial run to clean and format play-by-play dat
         writer.writerows(temp_cab)
 
 if __name__ == '__main__':
-    games = []
-    seasons = []
-    name_pop(time.localtime()[0])
+    seasons, games = name_pop(time.localtime()[0])
     for season_id in seasons:
         for game_id in games:
+            print(season_id, game_id)
             if int(season_id) > 95:  # The 1996-97 season is the first season with play-by-play data on NBA.com
                 pbp_scraper(season_id, game_id)
             box_score_scraper(season_id, game_id)
