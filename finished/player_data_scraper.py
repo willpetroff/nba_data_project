@@ -1,8 +1,8 @@
 """
-Python 3.4.3
-
 This is a script that gets the json file that contains all NBA players and their ID numbers from nba.com and edits it
 into a manageable format.
+
+Python 3.4.3
 
 Created: 5/20/14
 Edited: 10/19/15
@@ -23,7 +23,12 @@ from time import localtime
 
 
 def player_list_grabber(year1=localtime()[0], year2=localtime()[0]+1):  # Year1, Year2 default to present year and +1
-    season_id = str(year1)+'-'+str(year2)[2:]
+    """
+    Writes master file of basic information (Name, PlayerID, Active/Inactive etc.) for all NBA players up to current season.
+    :param year1: A given year (int). Default set to current year.
+    :param year2: Must have value of "year1 + 1".
+    """
+	season_id = str(year1)+'-'+str(year2)[2:]
     url = 'http://stats.nba.com/stats/commonallplayers?IsOnlyCurrentSeason=0&LeagueID=00&Season='+season_id
     req = urlopen(url)
     data = loads(req.read().decode())
