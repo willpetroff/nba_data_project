@@ -5,43 +5,55 @@ into a manageable format.
 Python 3.4.3
 
 Created: 5/20/14
-Edited: 10/19/15
-*Moved file creation from beginning to end
-*Created player_entry_gen
-*Made script updating rather than refreshing
-Edited: 11/10/15
-*Set default values on player_list_grabber function
+Edited: 6/20/16
 """
 from urllib.request import urlopen
+import urllib.error
 from json import loads
 import csv
 from shutil import move
 from time import sleep
 from random import randint
-from os import listdir
+import os
 from time import localtime
 
 
-def player_list_grabber(year1=localtime()[0], year2=localtime()[0]+1):  # Year1, Year2 default to present year and +1
+def file_dir_check(directory):
+    if not os.path.exists(directory):  # Checks for error path and makes it if it isn't there
+        os.makedirs(directory)
+
+
+def player_list_grabber(year1=localtime()[0], year2=localtime()[0]+1):
     """
-    Writes master file of basic information (Name, PlayerID, Active/Inactive etc.) for all NBA players up to current season.
+    Writes master file of basic information (Name, PlayerID, Active/Inactive etc.) for all NBA players up to current
+    season.
     :param year1: A given year (int). Default set to current year.
-    :param year2: Must have value of "year1 + 1".
+    :param year2: Must be 'year1 + 1'
     """
-	season_id = str(year1)+'-'+str(year2)[2:]
-    url = 'http://stats.nba.com/stats/commonallplayers?IsOnlyCurrentSeason=0&LeagueID=00&Season='+season_id
-    req = urlopen(url)
-    data = loads(req.read().decode())
-    header_cab = [data['resultSets'][0]['headers']]  # Sets aside header values from nba json file
-    temp_cab = [item for item in data['resultSets'][0]['rowSet']]  # Builds player list
-    temp_cab.insert(0, header_cab[0])
-    with open('player_id_file.csv', 'w', newline='') as id_file:
-        writer = csv.writer(id_file)
-        writer.writerows(temp_cab)
+    season_id = str(year1)+'-'+str(year2)[2:]
+    url = 'http://stats.nba.com/stats/commonallplayers?IsOnlyCurrentSeason=0&LeagueID=00&Season=' + season_id
+    try:
+        req = urlopen(url)
+        data = loads(req.read().decode())
+    except urllib.error.HTTPError as error_code:
+        pwd = 'C:\\Users\\willp\\Documents\\projects\\nba_data_project'  # Get more general present working directory
+        error_file_dir = pwd + '\\error'
+        file_dir_check(error_file_dir)
+        with open(error_file_dir + '\\error_file_log.txt', 'r', newline='') as error_log:
+            error_log.write(error_code)
+    else:
+        header_cab = [data['resultSets'][0]['headers']]  # Sets aside header values from nba json file
+        temp_cab = [item for item in data['resultSets'][0]['rowSet']]  # Builds player list
+        temp_cab.insert(0, header_cab[0])
+        file_dir = 'C:\\Users\\willp\\Documents\\projects\\nba_data_project\\data'  # See line 44
+        file_dir_check(file_dir)
+        with open(file_dir + '\\player_id_file.csv', 'w', newline='') as id_file:
+            writer = csv.writer(id_file)
+            writer.writerows(temp_cab)
 
 
 def player_entry_gen(player_id_num, name_string, player_code, height, weight,
-                      player_active, approx_pos, start_year, end_year, year, month, day):  # Creates player_dict entry
+                     player_active, approx_pos, start_year, end_year, year, month, day):  # Creates player_dict entry
     name_split = name_string.split(',')  # Splits player name from "last. first" to [last, first]
     if len(name_split) > 1:  # Nene check
         last_name = name_split[0]
@@ -58,15 +70,17 @@ def player_entry_gen(player_id_num, name_string, player_code, height, weight,
 
 def player_list_gen():  # This function retrieves player id file and generates a list of players and ids.
     # Check to see if player_vitals file exists
-    if 'player_vitals.csv' in listdir('C:\\Users\\William\\Documents\\Python Projects\\nba\\data\\physical data'):
-        with open('C:\\Users\\William\\Documents\\Python Projects\\nba\\data\\physical data\\player_vitals.csv', 'r')\
+    phys_data = 'C:\\Users\\willp\\Documents\\Python Projects\\nba\\data\\physical data'
+    file_dir_check(phys_data)
+    if 'player_vitals.csv' in os.listdir(phys_data):
+        with open(phys_data + '\\player_vitals.csv', 'r')\
                 as player_vital_file:
             reader = csv.reader(player_vital_file)
             next(reader)
             for line in reader:  # Generates player_dict entries for existing players
                 player_entry_gen(line[0], line[1], line[8], line[3], line[4], line[5], line[2], line[6], line[7],
-                                  line[9], line[10], line[11])
-    with open('player_id_file.csv', 'r') as id_file:
+                                 line[9], line[10], line[11])
+    with open('C:\\Users\\willp\\Documents\\projects\\nba_data_project\\data\\player_id_file.csv', 'r') as id_file:
         reader = csv.reader(id_file)
         next(reader)
         for line in reader:
