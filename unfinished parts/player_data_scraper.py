@@ -32,24 +32,29 @@ def player_list_grabber(year1=localtime()[0], year2=localtime()[0]+1):
     """
     season_id = str(year1)+'-'+str(year2)[2:]
     url = 'http://stats.nba.com/stats/commonallplayers?IsOnlyCurrentSeason=0&LeagueID=00&Season=' + season_id
-    try:
-        req = urlopen(url)
-        data = loads(req.read().decode())
-    except urllib.error.HTTPError as error_code:
-        pwd = 'C:\\Users\\willp\\Documents\\projects\\nba_data_project'  # Get more general present working directory
-        error_file_dir = pwd + '\\error'
-        file_dir_check(error_file_dir)
-        with open(error_file_dir + '\\error_file_log.txt', 'r', newline='') as error_log:
-            error_log.write(error_code)
-    else:
-        header_cab = [data['resultSets'][0]['headers']]  # Sets aside header values from nba json file
-        temp_cab = [item for item in data['resultSets'][0]['rowSet']]  # Builds player list
-        temp_cab.insert(0, header_cab[0])
-        file_dir = 'C:\\Users\\willp\\Documents\\projects\\nba_data_project\\data'  # See line 44
-        file_dir_check(file_dir)
-        with open(file_dir + '\\player_id_file.csv', 'w', newline='') as id_file:
-            writer = csv.writer(id_file)
-            writer.writerows(temp_cab)
+    flag = False
+    counter = 5
+    while flag is False and counter != 0:
+        try:
+            req = urlopen(url)
+            data = loads(req.read().decode())
+            flag = True
+        except urllib.error.HTTPError as error_code:
+            pwd = 'C:\\Users\\willp\\Documents\\projects\\nba_data_project'  # Get more pwd more generally
+            error_file_dir = pwd + '\\error'
+            file_dir_check(error_file_dir)
+            with open(error_file_dir + '\\error_file_log.txt', 'r', newline='') as error_log:
+                error_log.write(error_code)
+            counter -= 1
+        else:
+            header_cab = [data['resultSets'][0]['headers']]  # Sets aside header values from nba json file
+            temp_cab = [item for item in data['resultSets'][0]['rowSet']]  # Builds player list
+            temp_cab.insert(0, header_cab[0])
+            file_dir = 'C:\\Users\\willp\\Documents\\projects\\nba_data_project\\data'  # See line 43
+            file_dir_check(file_dir)
+            with open(file_dir + '\\player_id_file.csv', 'w', newline='') as id_file:
+                writer = csv.writer(id_file)
+                writer.writerows(temp_cab)
 
 
 def player_entry_gen(player_id_num, name_string, player_code, height, weight,
@@ -70,7 +75,7 @@ def player_entry_gen(player_id_num, name_string, player_code, height, weight,
 
 def player_list_gen():  # This function retrieves player id file and generates a list of players and ids.
     # Check to see if player_vitals file exists
-    phys_data = 'C:\\Users\\willp\\Documents\\Python Projects\\nba\\data\\physical data'
+    phys_data = 'C:\\Users\\willp\\Documents\\projects\\nba\\data\\physical data'  # See line 43
     file_dir_check(phys_data)
     if 'player_vitals.csv' in os.listdir(phys_data):
         with open(phys_data + '\\player_vitals.csv', 'r')\
@@ -89,22 +94,26 @@ def player_list_gen():  # This function retrieves player id file and generates a
             else:
                 player_entry_gen(line[0], line[1], line[5], '', '', line[2], '', line[3], line[4], '', '', '')
 
-
+######################################## Left off here
 def vital_grab(player):  # This function grabs player vital data from nba.com player profile pages.
-    url = 'http://stats.nba.com/stats/commonplayerinfo?LeagueID=00&PlayerID='+player+'&SeasonType=Regular+Season'
-    req = urlopen(url)
-    data = loads(req.read().decode())
-    new_line = [item for item in data['resultSets'][0]['rowSet'][0]]
-    height = new_line[10].split('-')  # Splits "height" string from feet-inches to [feet, inches]
-    if len(height) > 1:  # Converts "height" string from feet and inches to meters
-        player_dict[player]['height'] = (int(height[0])*12+int(height[1]))*.0254
-    if new_line[11]:  # Converts weight from pounds to kilograms
-        player_dict[player]['weight'] = int(new_line[11])*.453592
-    player_dict[player]['approx_pos'] = new_line[14]
-    # The following lines set individual DOB values to appropriate keys
-    player_dict[player]['DOB']['year'] = new_line[6].split('-')[0]
-    player_dict[player]['DOB']['month'] = new_line[6].split('-')[1]
-    player_dict[player]['DOB']['day'] = new_line[6].split('-')[2][:2]
+    try:
+        url = 'http://stats.nba.com/stats/commonplayerinfo?LeagueID=00&PlayerID='+player+'&SeasonType=Regular+Season'
+        req = urlopen(url)
+    except urllib.error.HTTPError as error_code:
+        pass
+    else:
+        data = loads(req.read().decode())
+        new_line = [item for item in data['resultSets'][0]['rowSet'][0]]
+        height = new_line[10].split('-')  # Splits "height" string from feet-inches to [feet, inches]
+        if len(height) > 1:  # Converts "height" string from feet and inches to meters
+            player_dict[player]['height'] = (int(height[0])*12+int(height[1]))*.0254
+        if new_line[11]:  # Converts weight from pounds to kilograms
+            player_dict[player]['weight'] = int(new_line[11])*.453592
+        player_dict[player]['approx_pos'] = new_line[14]
+        # The following lines set individual DOB values to appropriate keys
+        player_dict[player]['DOB']['year'] = new_line[6].split('-')[0]
+        player_dict[player]['DOB']['month'] = new_line[6].split('-')[1]
+        player_dict[player]['DOB']['day'] = new_line[6].split('-')[2][:2]
 
 
 def vital_writer():  # Creating the vitals_csv from gathered information.
