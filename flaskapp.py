@@ -30,70 +30,53 @@ def get_players():
 
 @app.route('/players/update')
 def player_update():
+    sys.stdout.flush()
+    print('testing route')
     my_scraper = scraper.NBADataScraper()
     # headers, data = my_scraper.set_players()
     # update_players(data)
     players = models.Player.query.all()
     for player in players:
-        if player.last_scraped:
-            if player.inactive or player.last_scraped >= datetime.datetime.utcnow():
-                pass
-            else:
-                print(player.get_name(), player.nba_id)
-                random.seed()
-                time.sleep(random.randint(3, 7))
-                headers, data = my_scraper.get_play_season_totals(player.nba_id)
-                for season in data:
-                    nba_season = models.Season.query.filter_by(season_code=season[1]).first()
-                    if not nba_season:
-                        nba_season = models.Season()
-                        nba_season.season_code = season[1]
-                        nba_season.season_start = int(season[1].split("-")[0])
-                        nba_season.season_end = nba_season.season_start + 1
+        if player.last_scraped and (not player.active or player.last_scraped >= datetime.datetime.utcnow()):
+            pass
+        else:
+            print(player.get_name(), player.nba_id)
+            random.seed()
+            time.sleep(random.randint(3, 7))
+            headers, data = my_scraper.get_play_season_totals(player.nba_id)
+            for season in data:
+                season = {i[0]: i[1] for i in zip(headers[0], season)}
+                nba_season = models.Season.query.filter_by(season_code=season['SEASON_ID']).first()
+                if not nba_season:
+                    nba_season = models.Season()
+                    nba_season.season_code = season['SEASON_ID']
+                    nba_season.season_start = int(season['SEASON_ID'].split("-")[0])
+                    nba_season.season_end = nba_season.season_start + 1
 
-                        nba_season.add_object()
+                    nba_season.add_object()
 
-                    team = models.Team.query.filter_by(nba_team_id=season[3]).first()
-                    if not team:
-                        team = models.Team()
-                        team.nba_team_id = season[3]
-                        team.team_abbr = season[4]
+                team = models.Team.query.filter_by(nba_team_id=season['TEAM_ID']).first()
+                if not team:
+                    team = models.Team()
+                    team.nba_team_id = season['TEAM_ID']
+                    team.team_abbr = season['TEAM_ABBREVIATION']
 
-                        team.add_object()
+                    team.add_object()
 
-                    player_season = models.PlayerSeason()
-                    player_season.player_id = player.player_id
-                    player_season.season_id = nba_season.season_id
-                    player_season.team_id = team.team_id
-                    player_season.league_id = season[2]
-                    player_season.player_age = season[5]
-                    player_season.games_played = season[6]
-                    player_season.games_started = season[7]
-                    player_season.minutes_played = season[8]
-                    player_season.field_goals_made = season[9]
-                    player_season.field_goals_attempted = season[10]
-                    player_season.field_goal_percentage = season[11]
-                    player_season.three_pointers_made = season[12]
-                    player_season.three_pointers_attempted = season[13]
-                    player_season.three_pointer_percentage = season[14]
-                    player_season.free_throws_made = season[15]
-                    player_season.free_throws_attempted = season[16]
-                    player_season.free_throw_percentage = season[17]
-                    player_season.offensive_rebounds = season[18]
-                    player_season.defensive_rebounds = season[19]
-                    player_season.total_rebounds = season[20]
-                    player_season.assists = season[21]
-                    player_season.steals = season[22]
-                    player_season.blocks = season[23]
-                    player_season.turnovers = season[24]
-                    player_season.personal_fouls = season[25]
-                    player_season.points = season[26]
+                player_season = models.PlayerSeason()
+                player_season.player_id = player.player_id
+                player_season.season_id = nba_season.season_id
+                player_season.team_id = team.team_id
+                for item in season:
+                    attr = player_season.get_attr_title(item)
+                    if attr:
+                        setattr(player_season, attr, season[item])
 
-                    player_season.add_object()
+                player_season.add_object()
 
-                player.last_scraped = datetime.datetime.utcnow()
+            player.last_scraped = datetime.datetime.utcnow()
 
-                player.update_object()
+            player.update_object()
 
     return "Player Seasons Gotten"
 

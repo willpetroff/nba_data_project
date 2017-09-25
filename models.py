@@ -109,32 +109,35 @@ class PlayerSeason(BaseModel, db.Model):
     season = db.relationship('Season')
     team = db.relationship('Team')
 
-    def get_attr(self, key):
+    def get_attr_title(self, key):
         attribute_table = {
-            "PLAYER_AGE": self.player_age,
-            "GP": self.games_played,
-            "GS": self.games_started,
-            "MIN": self.minutes_played,
-            "FGM": self.field_goals_made,
-            "FGA": self.field_goals_attempted,
-            "FG_PCT": self.field_goal_percentage,
-            "FG3M": self.three_pointers_made,
-            "FG3A": self.three_pointers_attempted,
-            "FG3_PCT": self.three_pointer_percentage,
-            "FTM": self.free_throws_made,
-            "FTA": self.free_throws_attempted,
-            "FT_PCT": self.free_throw_percentage,
-            "OREB": self.offensive_rebounds,
-            "DREB": self.defensive_rebounds,
-            "REB": self.total_rebounds,
-            "AST": self.assists,
-            "STL": self.steals,
-            "BLK": self.blocks,
-            "TOV": self.turnovers,
-            "PF": self.personal_fouls,
-            "PTS": self.points
+            "PLAYER_AGE": "player_age",
+            "GP": "games_played",
+            "GS": "games_started",
+            "MIN": "minutes_played",
+            "FGM": "field_goals_made",
+            "FGA": "field_goals_attempted",
+            "FG_PCT": "field_goal_percentage",
+            "FG3M": "three_pointers_made",
+            "FG3A": "three_pointers_attempted",
+            "FG3_PCT": "three_pointer_percentage",
+            "FTM": "free_throws_made",
+            "FTA": "free_throws_attempted",
+            "FT_PCT": "free_throw_percentage",
+            "OREB": "offensive_rebounds",
+            "DREB": "defensive_rebounds",
+            "REB": "total_rebounds",
+            "AST": "assists",
+            "STL": "steals",
+            "BLK": "blocks",
+            "TOV": "turnovers",
+            "PF": "personal_fouls",
+            "PTS": "points"
         }
-        return attribute_table[key]
+        if key in attribute_table.keys():
+            return attribute_table[key]
+        else:
+            return False
 #
 #
 # Season
