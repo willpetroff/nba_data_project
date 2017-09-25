@@ -42,43 +42,47 @@ def player_update():
         else:
             print(player.get_name(), player.nba_id)
             random.seed()
-            # time.sleep(random.randint(3, 7))
+            time.sleep(random.randint(1, 3))
             headers, data = my_scraper.get_play_season_totals(player.nba_id)
             for season in data:
                 season = {i[0]: i[1] for i in zip(headers[0], season)}
-                nba_season = models.Season.query.filter_by(season_code=season['SEASON_ID']).first()
-                if not nba_season:
-                    nba_season = models.Season()
-                    nba_season.season_code = season['SEASON_ID']
-                    nba_season.season_start = int(season['SEASON_ID'].split("-")[0])
-                    nba_season.season_end = nba_season.season_start + 1
-
-                    nba_season.add_object()
-
-                team = models.Team.query.filter_by(nba_team_id=season['TEAM_ID']).first()
-                if not team:
-                    team = models.Team()
-                    team.nba_team_id = season['TEAM_ID']
-                    team.team_abbr = season['TEAM_ABBREVIATION']
-
-                    team.add_object()
-                player_season = models.PlayerSeason.query.filter_by(player_id=player.player_id,
-                                                                    season_id=nba_season.season_id).first()
-                updating_season = True
-                if not player_season:
-                    player_season = models.PlayerSeason()
-                    updating_season = False
-                player_season.player_id = player.player_id
-                player_season.season_id = nba_season.season_id
-                player_season.team_id = team.team_id
-                for item in season:
-                    attr = player_season.get_attr_title(item)
-                    if attr:
-                        setattr(player_season, attr, season[item])
-                if updating_season:
-                    player_season.update_object()
+                if season['TEAM_ABBREVIATION'] == 'Tot':
+                    pass
                 else:
-                    player_season.add_object()
+                    nba_season = models.Season.query.filter_by(season_code=season['SEASON_ID']).first()
+                    if not nba_season:
+                        nba_season = models.Season()
+                        nba_season.season_code = season['SEASON_ID']
+                        nba_season.season_start = int(season['SEASON_ID'].split("-")[0])
+                        nba_season.season_end = nba_season.season_start + 1
+
+                        nba_season.add_object()
+
+                    team = models.Team.query.filter_by(nba_team_id=season['TEAM_ID']).first()
+                    if not team:
+                        team = models.Team()
+                        team.nba_team_id = season['TEAM_ID']
+                        team.team_abbr = season['TEAM_ABBREVIATION']
+
+                        team.add_object()
+                    player_season = models.PlayerSeason.query.filter_by(player_id=player.player_id,
+                                                                        season_id=nba_season.season_id,
+                                                                        team_id=team.team_id).first()
+                    updating_season = True
+                    if not player_season:
+                        player_season = models.PlayerSeason()
+                        updating_season = False
+                    player_season.player_id = player.player_id
+                    player_season.season_id = nba_season.season_id
+                    player_season.team_id = team.team_id
+                    for item in season:
+                        attr = player_season.get_attr_title(item)
+                        if attr:
+                            setattr(player_season, attr, season[item])
+                    if updating_season:
+                        player_season.update_object()
+                    else:
+                        player_season.add_object()
 
             player.last_scraped = datetime.datetime.utcnow()
 
