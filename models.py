@@ -108,6 +108,33 @@ class PlayerSeason(BaseModel, db.Model):
     player = db.relationship('Player')
     season = db.relationship('Season')
     team = db.relationship('Team')
+
+    def get_attr(self, key):
+        attribute_table = {
+            "PLAYER_AGE": self.player_age,
+            "GP": self.games_played,
+            "GS": self.games_started,
+            "MIN": self.minutes_played,
+            "FGM": self.field_goals_made,
+            "FGA": self.field_goals_attempted,
+            "FG_PCT": self.field_goal_percentage,
+            "FG3M": self.three_pointers_made,
+            "FG3A": self.three_pointers_attempted,
+            "FG3_PCT": self.three_pointer_percentage,
+            "FTM": self.free_throws_made,
+            "FTA": self.free_throws_attempted,
+            "FT_PCT": self.free_throw_percentage,
+            "OREB": self.offensive_rebounds,
+            "DREB": self.defensive_rebounds,
+            "REB": self.total_rebounds,
+            "AST": self.assists,
+            "STL": self.steals,
+            "BLK": self.blocks,
+            "TOV": self.turnovers,
+            "PF": self.personal_fouls,
+            "PTS": self.points
+        }
+        return attribute_table[key]
 #
 #
 # Season

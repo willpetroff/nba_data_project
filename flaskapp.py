@@ -1,9 +1,12 @@
-import nba_data_test.models as models
-import datetime, os, random, sys, time
-import nba_data_test.scraper as scraper
+import datetime
+import models
+import os
+import random
+import sys
+import time
+import scraper
 
 from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config.from_pyfile('flaskapp.cfg')
@@ -14,13 +17,16 @@ models.db.init_app(app)
 def before_request():
     sys.stdout.flush()
 
+
 @app.route('/')
 def index_main():
     return "SUCCESS"
 
+
 @app.route('/players/get')
 def get_players():
-    return "Players Gotten"
+    return jsonify(success="Players Gotten")
+
 
 @app.route('/players/update')
 def player_update():
@@ -56,7 +62,7 @@ def player_update():
                         team.add_object()
 
                     player_season = models.PlayerSeason()
-                    player_season.player_id =player.player_id
+                    player_season.player_id = player.player_id
                     player_season.season_id = nba_season.season_id
                     player_season.team_id = team.team_id
                     player_season.league_id = season[2]
@@ -95,6 +101,8 @@ def player_update():
 """
 SETUP
 """
+
+
 @app.route('/setup/init-db')
 def init_db():
     with app.app_context():
@@ -105,9 +113,11 @@ def init_db():
     update_players(data)
     return "SUCCESS"
 
+
 """
 Misc. Functions
 """
+
 
 def update_players(data_rows):
     for player in data_rows:
