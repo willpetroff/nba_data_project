@@ -42,7 +42,7 @@ def player_update():
         else:
             print(player.get_name(), player.nba_id)
             random.seed()
-            time.sleep(random.randint(3, 7))
+            # time.sleep(random.randint(3, 7))
             headers, data = my_scraper.get_play_season_totals(player.nba_id)
             for season in data:
                 season = {i[0]: i[1] for i in zip(headers[0], season)}
@@ -62,8 +62,12 @@ def player_update():
                     team.team_abbr = season['TEAM_ABBREVIATION']
 
                     team.add_object()
-
-                player_season = models.PlayerSeason()
+                player_season = models.PlayerSeason.query.filter_by(player_id=player.player_id,
+                                                                    season_id=nba_season.season_id).first()
+                updating_season = True
+                if not player_season:
+                    player_season = models.PlayerSeason()
+                    updating_season = False
                 player_season.player_id = player.player_id
                 player_season.season_id = nba_season.season_id
                 player_season.team_id = team.team_id
@@ -71,8 +75,10 @@ def player_update():
                     attr = player_season.get_attr_title(item)
                     if attr:
                         setattr(player_season, attr, season[item])
-
-                player_season.add_object()
+                if updating_season:
+                    player_season.update_object()
+                else:
+                    player_season.add_object()
 
             player.last_scraped = datetime.datetime.utcnow()
 
