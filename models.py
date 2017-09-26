@@ -49,6 +49,74 @@ class Season(BaseModel, db.Model):
     season_end = db.Column(db.Integer)
 
 
+class Game(BaseModel, db.Model):
+    __tablename__ = "game"
+    game_id = db.Column(db.Integer, primary_key=True)
+    nba_game_id = db.Column(db.Integer)
+    home_team = db.Column(db.Integer, db.ForeignKey('team.team_id'))
+    visiting_team = db.Column(db.Integer, db.ForeignKey('team.team_id'))
+    home_team_win = db.Column(db.Boolean)
+    game_date = db.Column(db.Date)
+    ref_one = db.Column(db.Integer)
+    ref_two = db.Column(db.Integer)
+    ref_three = db.Column(db.Integer)
+
+
+class GameEvent(BaseModel, db.Model):
+    __tablename__ = "game_event"
+    event_id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'))
+    event_number = db.Column(db.Integer)
+    message_type = db.Column(db.Integer)
+    message_action_type = db.Column(db.Integer)
+    period = db.Column(db.Integer)
+    world_time = db.Column(db.String(5))
+    game_minutes = db.Column(db.Integer)
+    game_seconds = db.Column(db.Integer)
+    home_event = db.Column(db.String(255))
+    neutral_event = db.Column(db.String(255))
+    visitor_event = db.Column(db.String(255))
+    home_score = db.Column(db.Integer)
+    visitor_score = db.Column(db.Integer)
+
+
+    """
+0	"GAME_ID"
+1	"EVENTNUM"
+2	"EVENTMSGTYPE"
+3	"EVENTMSGACTIONTYPE"
+4	"PERIOD"
+5	"WCTIMESTRING"
+6	"PCTIMESTRING"
+7	"HOMEDESCRIPTION"
+8	"NEUTRALDESCRIPTION"
+9	"VISITORDESCRIPTION"
+10	"SCORE"
+11	"SCOREMARGIN"
+12	"PERSON1TYPE"
+13	"PLAYER1_ID"
+14	"PLAYER1_NAME"
+15	"PLAYER1_TEAM_ID"
+16	"PLAYER1_TEAM_CITY"
+17	"PLAYER1_TEAM_NICKNAME"
+18	"PLAYER1_TEAM_ABBREVIATION"
+19	"PERSON2TYPE"
+20	"PLAYER2_ID"
+21	"PLAYER2_NAME"
+22	"PLAYER2_TEAM_ID"
+23	"PLAYER2_TEAM_CITY"
+24	"PLAYER2_TEAM_NICKNAME"
+25	"PLAYER2_TEAM_ABBREVIATION"
+26	"PERSON3TYPE"
+27	"PLAYER3_ID"
+28	"PLAYER3_NAME"
+29	"PLAYER3_TEAM_ID"
+30	"PLAYER3_TEAM_CITY"
+31	"PLAYER3_TEAM_NICKNAME"
+32	"PLAYER3_TEAM_ABBREVIATION"
+    """
+
+
 
 class Team(BaseModel, db.Model):
     __tablename__ = "team"
@@ -138,82 +206,9 @@ class PlayerSeason(BaseModel, db.Model):
             return attribute_table[key]
         else:
             return False
-#
-#
-# Season
-#     year_start
-#     year_end
-#     league
-#
-# Team
-#     city
-#     name
-#     season_formed
-#     season_defunct
-#
-#     get_all_record
-#     get_season_record
-#     get_players
-#
-# Player
-#     name
-#     height
-#     weight
-#     wingspan
-#     season_first
-#     season_last
-#
-#     get_points
-#     get_off_rebounds
-#     get_def_rebounds
-#     get_total_rebounds
-#     get_assists
-#     get_steals
-#     get_blocks
-#     get_pf
-#     etc.
-#
-# Game
-#     season
-#     home_team
-#     away_team
-#     win_team
-#     box_score_stuff
-#
-# PlayerGame
-#     minutes_played
-#     points
-#     off_rebounds
-#     def_rebounds
-#     total_rebouns
-#     assists
-#     steals
-#     blocks
-#     fouls
-#     etc.
-#
-# GameLineUp
-#     Home 1-5
-#     Away 1-5
-#     minutes_played
-#     points
-#     off_rebounds
-#     def_rebounds
-#     total_rebouns
-#     assists
-#     steals
-#     blocks
-#     fouls
-#     etc.
-#
-# PlayerSeason
-#     points
-#     off_rebounds
-#     def_rebounds
-#     total_rebouns
-#     assists
-#     steals
-#     blocks
-#     fouls
-#     etc.
-#
+
+
+class Ref(BaseModel, db.Model):
+    __tablename__ = "referee"
+    ref_id = db.Column(db.Integer, primary_key=True)
+    ref_name = db.Column(db.String(255))

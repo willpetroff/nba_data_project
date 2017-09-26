@@ -150,6 +150,22 @@ class NBADataScraper(object):
 
         return headers, data
 
+    def get_game_pbp(self, game_id, season_id, season_type="Regular+Season", range_type="2",
+                     start={"period": "1", "range": "0"}, end={"period": "10", "range": "55800"}):
+        target = "http://stats.nba.com/stats/playbyplayv2"
+        params={"EndPeriod": end["period"],
+                "EndRange": end["range"],
+                "GameID": game_id,
+                "RangeType": range_type,
+                "Season": season_id,
+                "SeasonType": season_type,
+                "StartPeriod": start["period"],
+                "StartRange": start["range"]
+                }
+        headers, data = self._scrape(target=target, params=params)
+
+        return headers, data
+
     def _scrape(self, target, params=None):
         print('In _scrape')
         try:
