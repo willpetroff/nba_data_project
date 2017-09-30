@@ -31,10 +31,9 @@ def get_players():
 @app.route('/players/update')
 def player_update():
     sys.stdout.flush()
-    print('testing route')
     my_scraper = scraper.NBADataScraper()
-    # headers, data = my_scraper.set_players()
-    # update_players(data)
+    headers, data = my_scraper.set_players()
+    update_players(data)
     players = models.Player.query.all()
     for player in players:
         if player.last_scraped and (not player.active or player.last_scraped >= datetime.datetime.utcnow()):
@@ -89,6 +88,51 @@ def player_update():
             player.update_object()
 
     return "Player Seasons Gotten"
+
+
+@app.route('/games/get')
+def games_get():
+    my_scraper = scraper.NBADataScraper()
+    seasons = models.Season.query.all()
+    for season in seasons:
+        if season.season_start > 1995:  # Play-by-play data on NBA.com doesn't go back further than the '96-'97 season
+            game_number = 0
+            while game_number <= 1230:
+                game = models.Game()
+                # Fetch Game Info
+
+                game_number_string = str(game_number)
+                game_id = "00000"[:-len(game_number_string)] + game_number_string
+                game_id = "002{season_id}{game_id}".format(str(season.season_start)[-2:], game_id)
+                headers, data = my_scraper.get_game_pbp(game_id, season.season_code)
+                home_score = 0
+                visitor_score = 0
+                total_game_time = 48 + 5 * (game.periods - 4)
+                for event in data:
+                    event = {i[0]: i[1] for i in zip(headers[0], event)}
+
+                    new_event = models.GameEvent()
+                    new_event.game_id = game.game_id
+                    for item in event:
+                        attr = new_event.get_attr_title(item)
+                        if attr:
+                            setattr(new_event, attr, event[item])
+                    score = event["SCORE"].split('-')
+                    if score:
+                        home_score = score[1]
+                        visitor_score = score[0]
+                    new_event.home_score = home_score
+                    new_event.visitor_score = visitor_score
+                    game_time = event["PCTIMESTRING"].split(':')
+                    new_event.game_minutes = game_time[0]
+                    new_event.game_seconds = game_time[1]
+                    period = event["PERIOD"]
+                    if period > 4:
+                        overtime_periods = period - 4
+                        period = 4
+
+
+                game_number += 1
 
 
 """

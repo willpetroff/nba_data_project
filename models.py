@@ -48,18 +48,25 @@ class Season(BaseModel, db.Model):
     season_start = db.Column(db.Integer)
     season_end = db.Column(db.Integer)
 
+    games = db.relationship("Game")
+    player_seasons = db.relationship("PlayerSeason")
+
 
 class Game(BaseModel, db.Model):
     __tablename__ = "game"
     game_id = db.Column(db.Integer, primary_key=True)
     nba_game_id = db.Column(db.Integer)
-    home_team = db.Column(db.Integer, db.ForeignKey('team.team_id'))
-    visiting_team = db.Column(db.Integer, db.ForeignKey('team.team_id'))
+    home_team_id = db.Column(db.Integer, db.ForeignKey('team.team_id'))
+    visiting_team_id = db.Column(db.Integer, db.ForeignKey('team.team_id'))
     home_team_win = db.Column(db.Boolean)
+    periods = db.Column(db.Integer)
     game_date = db.Column(db.Date)
     ref_one = db.Column(db.Integer)
     ref_two = db.Column(db.Integer)
     ref_three = db.Column(db.Integer)
+
+    home_team = db.relationship('Team', foreign_keys=[home_team_id])
+    visiting_team = db.relationship('Team',  foreign_keys=[visiting_team_id])
 
 
 class GameEvent(BaseModel, db.Model):
@@ -70,7 +77,7 @@ class GameEvent(BaseModel, db.Model):
     message_type = db.Column(db.Integer)
     message_action_type = db.Column(db.Integer)
     period = db.Column(db.Integer)
-    world_time = db.Column(db.String(5))
+    world_time = db.Column(db.String(8))
     game_minutes = db.Column(db.Integer)
     game_seconds = db.Column(db.Integer)
     home_event = db.Column(db.String(255))
@@ -78,44 +85,60 @@ class GameEvent(BaseModel, db.Model):
     visitor_event = db.Column(db.String(255))
     home_score = db.Column(db.Integer)
     visitor_score = db.Column(db.Integer)
+    score_margin = db.Column(db.Integer)
+    game_time_elapsed_minutes = db.Column(db.Integer)
+    game_time_elapsed_seconds = db.Column(db.Integer)
+
+    game = db.relationship('Game')
+
+    def get_attr_title(self, key):
+        attribute_table = {
+            "EVENTNUM": "event_number",
+            "EVENTMSGTYPE": "message_type",
+            "EVENTMSGACTIONTYPE": "message_action_type",
+            "PERIOD": "period",
+            "WCTIMESTRING": "world_time",
+            "HOMEDESCRIPTION": "home_event",
+            "NEUTRALDESCRIPTION": "neutral_event",
+            "VISITORDESCRIPTION": "visitor_description",
+            "SCOREMARGIN": "score_margin"
+        }
+        if key in attribute_table.keys():
+            return attribute_table[key]
+        else:
+            return False
 
 
-    """
-0	"GAME_ID"
-1	"EVENTNUM"
-2	"EVENTMSGTYPE"
-3	"EVENTMSGACTIONTYPE"
-4	"PERIOD"
-5	"WCTIMESTRING"
-6	"PCTIMESTRING"
-7	"HOMEDESCRIPTION"
-8	"NEUTRALDESCRIPTION"
-9	"VISITORDESCRIPTION"
-10	"SCORE"
-11	"SCOREMARGIN"
-12	"PERSON1TYPE"
-13	"PLAYER1_ID"
-14	"PLAYER1_NAME"
-15	"PLAYER1_TEAM_ID"
-16	"PLAYER1_TEAM_CITY"
-17	"PLAYER1_TEAM_NICKNAME"
-18	"PLAYER1_TEAM_ABBREVIATION"
-19	"PERSON2TYPE"
-20	"PLAYER2_ID"
-21	"PLAYER2_NAME"
-22	"PLAYER2_TEAM_ID"
-23	"PLAYER2_TEAM_CITY"
-24	"PLAYER2_TEAM_NICKNAME"
-25	"PLAYER2_TEAM_ABBREVIATION"
-26	"PERSON3TYPE"
-27	"PLAYER3_ID"
-28	"PLAYER3_NAME"
-29	"PLAYER3_TEAM_ID"
-30	"PLAYER3_TEAM_CITY"
-31	"PLAYER3_TEAM_NICKNAME"
-32	"PLAYER3_TEAM_ABBREVIATION"
-    """
+class GamePlayerTotal(BaseModel, db.Model):
+    __tablename__ = "game_player_total"
+    game_player_total_id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'))
+    player_id = db.Column(db.Integer, db.ForeignKey('player.player_id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.team_id'))
+    game_started = db.Column(db.Boolean)
+    minutes_played = db.Column(db.Integer)
+    field_goals_made = db.Column(db.Integer)
+    field_goals_attempted = db.Column(db.Integer)
+    field_goal_percentage = db.Column(db.Numeric(5, 3))
+    three_pointers_made = db.Column(db.Integer)
+    three_pointers_attempted = db.Column(db.Integer)
+    three_pointer_percentage = db.Column(db.Numeric(5, 3))
+    free_throws_made = db.Column(db.Integer)
+    free_throws_attempted = db.Column(db.Integer)
+    free_throw_percentage = db.Column(db.Numeric(5, 3))
+    offensive_rebounds = db.Column(db.Integer)
+    defensive_rebounds = db.Column(db.Integer)
+    total_rebounds = db.Column(db.Integer)
+    assists = db.Column(db.Integer)
+    steals = db.Column(db.Integer)
+    blocks = db.Column(db.Integer)
+    turnovers = db.Column(db.Integer)
+    personal_fouls = db.Column(db.Integer)
+    points = db.Column(db.Integer)
 
+    game = db.relationship('Game')
+    player = db.relationship('Player')
+    team = db.relationship('Team')
 
 
 class Team(BaseModel, db.Model):
