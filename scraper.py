@@ -166,7 +166,30 @@ class NBADataScraper(object):
 
         return headers, data
 
-    def _scrape(self, target, params=None):
+    def get_game_boxscore(self, game_id, season_id, resultSetsIndex=0, season_type="Regular+Season", range_type="2",
+                     start_period="1", start_range="0", end_period="10", end_range="55800"):
+        target = "http://stats.nba.com/stats/boxscoretraditionalv2"
+        params = {"EndPeriod": end_period,
+                  "EndRange": end_range,
+                  "GameID": game_id,
+                  "RangeType": range_type,
+                  "Season": season_id,
+                  "SeasonType": season_type,
+                  "StartPeriod": start_period,
+                  "StartRange": start_range
+                  }
+        data = self._scrape(target=target, params=params, resultSetsIndex=resultSetsIndex)
+
+        return data
+
+    def get_game_misc_stats(self, game_id, resultSetsIndex):
+        target = "http://stats.nba.com/stats/boxscoresummaryv2?GameID={game_id}".format(game_id=game_id)
+
+        headers, data = self._scrape(target=target, resultSetsIndex=resultSetsIndex)
+
+        return headers, data
+
+    def _scrape(self, target, params=None, resultSetsIndex=0):
         print('In _scrape')
         try:
             r = requests.get(target, headers=self.header, params=params, timeout=10)
@@ -174,14 +197,17 @@ class NBADataScraper(object):
             raise requests.ConnectTimeout
         print(r.status_code)
         if r.status_code != 200:
+            print(r.url)
             raise requests.HTTPError
+        print(r.text)
         json_response = r.json()
         headers = []
         data = []
-        headers.append(json_response['resultSets'][0]['headers'])
-        for item in json_response['resultSets'][0]['rowSet']:
+        headers.append(json_response['resultSets'][resultSetsIndex]['headers'])
+        for item in json_response['resultSets'][resultSetsIndex]['rowSet']:
             data.append(item)
         return headers, data
+
 
     @staticmethod
     def _capitalize_word(word_string, split_on=None, split_index=None):

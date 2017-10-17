@@ -55,16 +55,25 @@ class Season(BaseModel, db.Model):
 class Game(BaseModel, db.Model):
     __tablename__ = "game"
     game_id = db.Column(db.Integer, primary_key=True)
-    nba_game_id = db.Column(db.Integer)
+    season_id = db.Column(db.Integer, db.ForeignKey('season.season_id'))
+    nba_game_id = db.Column(db.String(10))
     home_team_id = db.Column(db.Integer, db.ForeignKey('team.team_id'))
     visiting_team_id = db.Column(db.Integer, db.ForeignKey('team.team_id'))
+    home_team_score = db.Column(db.Integer)
+    visiting_team_score = db.Column(db.Integer)
     home_team_win = db.Column(db.Boolean)
     periods = db.Column(db.Integer)
     game_date = db.Column(db.Date)
     ref_one = db.Column(db.Integer)
     ref_two = db.Column(db.Integer)
     ref_three = db.Column(db.Integer)
+    arena = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    state = db.Column(db.String(3))
+    attendance = db.Column(db.Integer)
+    game_length = db.Column(db.String(4))
 
+    season = db.relationship('Season')
     home_team = db.relationship('Team', foreign_keys=[home_team_id])
     visiting_team = db.relationship('Team',  foreign_keys=[visiting_team_id])
 
@@ -135,11 +144,42 @@ class GamePlayerTotal(BaseModel, db.Model):
     turnovers = db.Column(db.Integer)
     personal_fouls = db.Column(db.Integer)
     points = db.Column(db.Integer)
+    comment = db.Column(db.String(50))
+    plus_minus = db.Column(db.Integer)
 
     game = db.relationship('Game')
     player = db.relationship('Player')
     team = db.relationship('Team')
 
+    def get_attr_title(self, key):
+        attribute_table = {
+            "START_POSITION": "game_started",
+            "COMMENT": "comment",
+            "MIN": "minutes_played",
+            "FGM": "field_goals_made",
+            "FGA": "field_goals_attempted",
+            "FG_PCT": "field_goal_percentage",
+            "FG3M": "three_pointers_made",
+            "FG3A": "three_pointers_attempted",
+            "FG3_PCT": "three_pointer_percentage",
+            "FTM": "free_throws_made",
+            "FTA": "free_throws_attempted",
+            "FT_PCT": "free_throw_percentage",
+            "OREB": "offensive_rebounds",
+            "DREB": "defensive_rebounds",
+            "REB": "total_rebounds",
+            "AST": "assists",
+            "STL": "steals",
+            "BLK": "blocks",
+            "TOV": "turnovers",
+            "PF": "personal_fouls",
+            "PTS": "points",
+            "PLUS_MINUS": "plus_minus"
+        }
+        if key in attribute_table.keys():
+            return attribute_table[key]
+        else:
+            return False
 
 class Team(BaseModel, db.Model):
     __tablename__ = "team"
@@ -234,4 +274,6 @@ class PlayerSeason(BaseModel, db.Model):
 class Ref(BaseModel, db.Model):
     __tablename__ = "referee"
     ref_id = db.Column(db.Integer, primary_key=True)
-    ref_name = db.Column(db.String(255))
+    ref_nba_id = db.Column(db.Integer)
+    ref_first_name = db.Column(db.String(255))
+    ref_last_name = db.Column(db.String(255))
